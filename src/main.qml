@@ -17,32 +17,82 @@ QtObject {
     property string pluginQFieldMinimumVersion: "2.0.0"
     property var pluginPermissions: ["gps", "notify"]
     
+    // Log plugin initialization for debugging
+    Component.onCompleted: {
+        console.log("Transit Laser Plugin main object created")
+    }
+    
     // Property to hold the main UI component
-    property var pluginComponent: Qt.createComponent("TransitLaserUI.qml")
+    property var pluginComponent: null
     
     // Method called when plugin is loaded
     function init() {
         console.log("Transit Laser Plugin initialized")
+        
+        // Initialize the component here rather than at declaration
+        pluginComponent = Qt.createComponent("TransitLaserUI.qml")
+        
+        if (pluginComponent.status === Component.Error) {
+            console.error("Error loading TransitLaserUI component:", pluginComponent.errorString())
+            return false
+        }
+        
+        console.log("Transit Laser Plugin init completed successfully")
         return true
     }
     
     // Method called when plugin is enabled
     function enable() {
-        var component = pluginComponent
-        if (component.status === Component.Ready) {
-            var pluginUI = component.createObject(null)
-            if (pluginUI === null) {
-                console.log("Error creating plugin UI")
-                return false
-            }
-            // Store reference to UI
-            transitLaserPlugin.ui = pluginUI
-            return true
-        } else if (component.status === Component.Error) {
-            console.log("Error loading component:", component.errorString())
+        console.log("Transit Laser Plugin enable() called")
+        
+        if (!pluginComponent) {
+            console.error("Plugin component not initialized")
             return false
         }
+        
+        // Ensure component is ready
+        if (pluginComponent.status === Component.Loading) {
+            console.log("Component still loading, waiting...")
+            // Wait for it to be ready
+            pluginComponent.statusChanged.connect(function() {
+                if (pluginComponent.status === Component.Ready) {
+                    createUI()
+                }
+            })
+        } else if (pluginComponent.status === Component.Ready) {
+            return createUI()
+        } else if (pluginComponent.status === Component.Error) {
+            console.error("Error loading component:", pluginComponent.errorString())
+            return false
+        } else {
+            console.error("Unexpected component status:", pluginComponent.status)
+            return false
+        }
+        
         return false
+    }
+    
+    // Helper function to create UI
+    function createUI() {
+        console.log("Creating Transit Laser UI")
+        
+        try {
+            // Create UI in QField's main window
+            var pluginUI = pluginComponent.createObject(QFieldSettings.mainWindow)
+            
+            if (pluginUI === null) {
+                console.error("Error creating plugin UI")
+                return false
+            }
+            
+            // Store reference to UI
+            transitLaserPlugin.ui = pluginUI
+            console.log("Transit Laser UI created successfully")
+            return true
+        } catch (e) {
+            console.error("Exception creating UI:", e)
+            return false
+        }
     }
     
     // Method called when plugin is disabled

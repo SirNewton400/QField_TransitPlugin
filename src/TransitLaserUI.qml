@@ -30,23 +30,39 @@ Item {
     Component.onCompleted: {
         console.log("Transit Laser UI initialized")
         
-        // Create main button in QField toolbar
-        var toolButton = Qt.createQmlObject(
-            'import QtQuick 2.12; import QtQuick.Controls 2.12; import Theme 1.0; ToolButton { 
-                icon.source: "qrc:/icons/laser_level.svg"
-                onClicked: transitLaserUI.toggleVisible()
-                checkable: true
-                checked: transitLaserUI.visible
-            }',
-            QFieldTools.toolBar,
-            "transitLaserToolButton"
-        )
-        
-        // Add button to toolbar
-        QFieldTools.toolBar.addButton(toolButton)
-        
-        // Initially hide the UI
-        transitLaserUI.visible = false
+        // Use a delay to ensure QField is fully loaded
+        Qt.setTimeout(function() {
+            try {
+                // Create main button in QField toolbar with more direct icon reference
+                var toolButton = Qt.createQmlObject(
+                    'import QtQuick 2.12; import QtQuick.Controls 2.12; import Theme 1.0; ToolButton { 
+                        icon.name: "measure"  // Use a built-in QField icon name
+                        text: "Transit Laser"
+                        display: AbstractButton.IconOnly
+                        onClicked: transitLaserUI.toggleVisible()
+                        checkable: true
+                        checked: transitLaserUI.visible
+                        ToolTip.text: "Transit Laser"
+                        ToolTip.visible: hovered
+                    }',
+                    QFieldTools.toolBar,
+                    "transitLaserToolButton"
+                )
+                
+                // Add button to toolbar with explicit method
+                if (QFieldTools && QFieldTools.toolBar && QFieldTools.toolBar.addButton) {
+                    console.log("Adding Transit Laser button to toolbar")
+                    QFieldTools.toolBar.addButton(toolButton)
+                } else {
+                    console.error("QFieldTools.toolBar or addButton method not available")
+                }
+                
+                // Initially hide the UI
+                transitLaserUI.visible = false
+            } catch (e) {
+                console.error("Error creating Transit Laser button: " + e)
+            }
+        }, 1000)  // 1 second delay
     }
     
     function toggleVisible() {
