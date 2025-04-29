@@ -1,0 +1,13 @@
+{
+    "name": "Transit Laser",
+    "version": "1.0.0",
+    "description": "A plugin that adds transit laser functionality to QField",
+    "author": "QField User",
+    "repository": "",
+    "qgisMinimumVersion": "3.0",
+    "qfieldMinimumVersion": "2.0",
+    "mainFile": "main.qml",
+    "tags": ["survey", "gps", "elevation", "laser"],
+    "permissions": ["gps", "notify"],
+    "dependencies": []
+  }
