@@ -1,25 +1,43 @@
-#!/bin/bash
+name: Build QField Plugin Package
 
-# Set up variables
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-SRC_DIR="$ROOT_DIR/src"
-BUILD_DIR="$ROOT_DIR/build"
-VERSION="1.0.0"
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    # Allows manual triggering
 
-# Create build directory
-mkdir -p "$BUILD_DIR/transit-laser-plugin"
-cd "$BUILD_DIR/transit-laser-plugin"
-
-# Copy plugin files from source
-cp "$SRC_DIR/main.qml" .
-cp "$SRC_DIR/TransitLaserUI.qml" .
-cp "$SRC_DIR/laser-icon.svg" .
-cp "$SRC_DIR/manifest.json" .
-
-# Create the zip file
-cd "$BUILD_DIR"
-zip -r "$ROOT_DIR/transit-laser-plugin-$VERSION.zip" transit-laser-plugin
-
-echo "Package created: transit-laser-plugin-$VERSION.zip"
-echo "To install, upload this zip file to a web host, then use the 'Install plugin from URL' option in QField's Settings > Plugins menu."
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up directory structure
+        run: |
+          mkdir -p dist
+      
+      - name: Package Plugin
+        run: |
+          chmod +x scripts/package.sh
+          ./scripts/package.sh
+          cp transit-laser-plugin-1.0.0.zip dist/
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: transit-laser-plugin
+          path: dist/transit-laser-plugin-1.0.0.zip
+          
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/transit-laser-plugin-1.0.0.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
