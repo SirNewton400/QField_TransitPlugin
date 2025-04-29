@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Set up directory structure
         run: |
@@ -28,7 +28,7 @@ jobs:
           cp transit-laser-plugin-1.0.0.zip dist/
       
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: transit-laser-plugin
           path: dist/transit-laser-plugin-1.0.0.zip
